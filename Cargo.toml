@@ -1,0 +1,8 @@
+[package]
+name = "crypt3"
+version = "0.1.0"
+authors = ["dylan_DPC <dylan.dpc@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+md5 = "0.6"
