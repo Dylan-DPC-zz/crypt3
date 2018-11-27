@@ -1,11 +1,8 @@
 #![feature(try_from)]
 
-use blowfish::{
-    block_cipher_trait::generic_array::{typenum::U8, GenericArray},
-    BlockCipher, Blowfish,
-};
 use md5::{compute, Digest};
 use std::{convert::TryInto, error::Error, fmt::Debug, str};
+use ring::digest::{digest, SHA256, SHA512, Digest as RingDigest};
 
 const FORMATS: &[(&str, &str); 6] = &[
     ("md5", "$1$"),
@@ -40,21 +37,18 @@ fn delegate(
 ) -> Result<Encrypted, Box<Error>> {
     match algorithm {
         "md5" => Ok(Encrypted::Md5(compute(password))),
-//        "blf" => {
-//            let blowfish = Blowfish::new(GenericArray::<u8, U8>::from_mut_slice(salt.as_mut()));
-//            blowfish.encrypt_block(GenericArray::<u8, U8>::from_mut_slice(password.as_mut()));
-//
-//            Ok(Encrypted::Blowfish(blowfish))
-//        }
-
-        _ => Err("can't find algorithm".into()),
+        "sha256" => Ok(Encrypted::Sha256(digest(&SHA256, password))),
+        "sha512" => Ok(Encrypted::Sha512(digest(&SHA512, password))),
+        _ => unreachable!()
+        }
     }
-}
+
 
 #[derive(Clone, Debug)]
 pub enum Encrypted {
     Md5(Digest),
-    Blowfish(Blowfish),
+    Sha256(RingDigest),
+    Sha512(RingDigest),
 }
 
 #[cfg(test)]
@@ -84,6 +78,50 @@ mod tests {
 
             assert_eq!(value, expected);
         }
+    }
+
+    #[test]
+    fn sha256_works() {
+        use ring::digest;
+        unsafe {
+            let mut password = String::from("309ecc489c12d6eb4cc40f50c902f2b4d0ed77ee511a7c7a9bcd3ca86d4cd86f
+        989dd35bc5ff499670da34255b45b0cfd830e81f605dcf7dc5542e93ae9cd76fc");
+
+            let mut salt = String::from("$5$");
+
+            let digest = crypt(password.as_bytes_mut(), salt.as_bytes_mut());
+
+            let expected = digest::digest(&digest::SHA256, &password.as_bytes());
+
+            let value = match digest.unwrap() {
+                Encrypted::Sha256(x) => x,
+                _ => unreachable!(),
+            };
+
+            assert_eq!(value.as_ref(), expected.as_ref());
+        }
+
+    }  #[test]
+    fn sha512_works() {
+        use ring::digest;
+        unsafe {
+            let mut password = String::from("309ecc489c12d6eb4cc40f50c902f2b4d0ed77ee511a7c7a9bcd3ca86d4cd86f
+        989dd35bc5ff499670da34255b45b0cfd830e81f605dcf7dc5542e93ae9cd76fc");
+
+            let mut salt = String::from("$6$");
+
+            let digest = crypt(password.as_bytes_mut(), salt.as_bytes_mut());
+
+            let expected = digest::digest(&digest::SHA512, &password.as_bytes());
+
+            let value = match digest.unwrap() {
+                Encrypted::Sha512(x) => x,
+                _ => unreachable!(),
+            };
+
+            assert_eq!(value.as_ref(), expected.as_ref());
+        }
+
     }
 
 }
