@@ -37,7 +37,7 @@ use std::{error::Error, str};
 
 const FORMATS: &[(&str, &str); 6] = &[
     ("md5", "$1$"),
-    ("blf", "$2"),
+    ("blf", "$2$"),
     ("nth", "$3$"),
     ("sha256", "$5$"),
     ("sha512", "$6$"),
