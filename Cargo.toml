@@ -9,5 +9,5 @@ readme = "README.md"
 repository = "https://github.com/Dylan-DPC/crypt3"
 
 [dependencies]
-md5 = "0.6"
-ring = "0.13"
+md5 = "0.7"
+ring = "0.16"

@@ -48,7 +48,7 @@ const FORMATS: &[(&str, &str); 6] = &[
 /// password and a salt. The first 3 bytes of the salt decide which algorithm is picked and
 /// should be in the $id$ form (e.g. $1$ for MD5).
 
-pub fn crypt<'a>(password: &'a [u8], salt: &'a [u8]) -> Result<Vec<u8>, Box<Error>> {
+pub fn crypt<'a>(password: &'a [u8], salt: &'a [u8]) -> Result<Vec<u8>, Box<dyn Error>> {
     if let Some(magic) = format_from_magic(salt) {
         delegate(*magic, password, salt)
     } else {
@@ -66,8 +66,8 @@ fn delegate<'a>(
     algorithm: (&'a str, &'a str),
     password: &'a [u8],
     salt: &'a [u8],
-) -> Result<Vec<u8>, Box<Error>> {
-    let digest: Result<Encrypted, Box<Error>> = match algorithm.0 {
+) -> Result<Vec<u8>, Box<dyn Error>> {
+    let digest: Result<Encrypted, Box<dyn Error>> = match algorithm.0 {
         "md5" => Ok(Encrypted::Md5(compute(password))),
         "sha256" => Ok(Encrypted::Sha256(digest(&SHA256, password))),
         "sha512" => Ok(Encrypted::Sha512(digest(&SHA512, password))),
